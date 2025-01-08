@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)https://fiddle.jshell.net/_display/?editor_console=true -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>タイピングゲーム</title>
+    
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+
+    <script type="text/javascript" src="./dummy.js.ダウンロード"></script>
+
+
+
+    <style id="compiled-css" type="text/css">
+      body {
+  font-family: 'Roboto', sans-serif;
+  text-align: center;
+  background: linear-gradient(135deg, #74ebd5, #acb6e5);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333;
+}
+
+#gameContainer {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 100%;
+  border: 1px solid #f0f0f0; /* Adding a light border */
+}
+
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+#header h1 {
+  margin: 0;
+  margin-right: 10px;
+  font-size: 2.5em;
+  color: #333;
+}
+
+#header img {
+  height: auto;
+  max-height: 60px;
+  width: auto;
+}
+
+#subText {
+  font-size: 1.2em;
+  margin: 10px 0 20px 0;
+  color: #555;
+}
+
+.card {
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0; /* Adding a light border to cards */
+}
+
+.hidden {
+  display: none;
+}
+
+.displayText {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #333;
+  font-weight: 700;
+}
+
+#userInput {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+#score, #questionCount {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.button {
+  background: #74ebd5;
+  border: none;
+  padding: 15px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 10px;
+}
+
+.button:hover {
+  background: #4cd3c2;
+}
+
+.button.tweet {
+  background: #1da1f2;
+  color: white;
+}
+
+.button.tweet:hover {
+  background: #0d8bf2;
+}
+
+
+      /* EOS */
+    </style>
+
+    <style type="text/css">
+      :root {
+        color-scheme: light;
+      }
+    </style>
+
+    <script id="insert"></script>
+
+      <script src="./stringify.js.ダウンロード" charset="utf-8"></script>
+      <script>
+        const customConsole = (w) => {
+          const pushToConsole = (payload, type) => {
+            w.parent.postMessage({
+              console: {
+                payload: stringify(payload),
+                type:    type
+              }
+            }, "*")
+          }
+
+          w.onerror = (message, url, line, column) => {
+            // the line needs to correspond with the editor panel
+            // unfortunately this number needs to be altered every time this view is changed
+            line = line - 70
+            if (line < 0){
+              pushToConsole(message, "error")
+            } else {
+              pushToConsole(`[${line}:${column}] ${message}`, "error")
+            }
+          }
+
+          let console = (function(systemConsole){
+            return {
+              log: function(){
+                let args = Array.from(arguments)
+                pushToConsole(args, "log")
+                systemConsole.log.apply(this, args)
+              },
+              info: function(){
+                let args = Array.from(arguments)
+                pushToConsole(args, "info")
+                systemConsole.info.apply(this, args)
+              },
+              warn: function(){
+                let args = Array.from(arguments)
+                pushToConsole(args, "warn")
+                systemConsole.warn.apply(this, args)
+              },
+              error: function(){
+                let args = Array.from(arguments)
+                pushToConsole(args, "error")
+                systemConsole.error.apply(this, args)
+              },
+              system: function(arg){
+                pushToConsole(arg, "system")
+              },
+              clear: function(){
+                systemConsole.clear.apply(this, {})
+              },
+              time: function(){
+                let args = Array.from(arguments)
+                systemConsole.time.apply(this, args)
+              },
+              assert: function(assertion, label){
+                if (!assertion){
+                  pushToConsole(label, "log")
+                }
+
+                let args = Array.from(arguments)
+                systemConsole.assert.apply(this, args)
+              }
+            }
+          }(window.console))
+
+          window.console = { ...window.console, ...console }
+
+          console.system("Running fiddle")
+        }
+
+        if (window.parent){
+          customConsole(window)
+        }
+      </script>
+  </head>
+  <body>
+    
+
+  
+    
+  
+  
+    <div id="gameContainer">
+      <div id="header">
+        <h1>タイピングゲーム</h1>
+        <img src="./computer_typing_hayai.png" alt="タイピングゲーム">
+      </div>
+      <p id="subText">タイピングで勉強しよう！！</p>
+      <div id="settings" class="card">
+        <label for="questionSelect">出題数を選んでください:</label>
+        <select id="questionSelect">
+          <option value="10">10問</option>
+          <option value="20">20問</option>
+          <option value="30">30問</option>
+        </select>
+        <button id="startButton" class="button">開始</button>
+      </div>
+      <div id="game" class="card hidden">
+        <div id="wordDisplay">順序なしリストというタグがあります。ul（unordered list）は順不同のリストという意味です（html）</div>
+        <div id="romanDisplay">there's the unordered list tag.so ul for unordered list which means it's not numbered</div>
+        <input type="text" id="userInput" placeholder="ここにタイピングしてください">
+        <div id="score">スコア: 0</div>
+        <div id="questionCount">残りの出題数: 0</div>
+      </div>
+      <div id="endGame" class="card hidden">
+        <div id="finalScore">あなたのスコアは <span id="correctAnswers">0</span> 点 / <span id="totalQuestions">30</span> 問でした。</div>
+        <button id="retryButton" class="button">再チャレンジ</button>
+      </div>
+    </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+
+const words = [
+  { japanese: "trueとfalseは大文字でなければなりません（Python）", roman: "true and it turns out false now must be capitalized" }, { japanese: "Pythonの辞書はより一般的に、任意のキーと任意の値を格納することができます", roman: "dictionary in python more generally lets you store any keys and any values" },
+  { japanese: "rangeには2つの異なる種類があることです（Ptyhon）", roman: "that range comes in two different flavers" }, { japanese: "キャストとはあるデータ型を別のデータ型に変換することです（Python）", roman: "casting means to convert one date type to another" },
+  { japanese: "XがYより小さければそれをプリントアウトします", roman: "if x less than y print out as much" }, { japanese: "ネームスペーシングとは2つの異なるネームスペースに同じ名前の変数や関数を存在させることができるということです（Python）", roman: "namespacing means that you can have two identically named variables of function in two different name spaces" },
+  { japanese: "Pythonにはcharというデータ型は存在しません", roman: "in python there is no such thing as an individual char" }, { japanese: "ｎが0より大きければ、つまり正の値であればbreakします", roman: "if n is greater than 0 there by making it positive break" },
+  { japanese: "星型演算子（＊）はオーバーロードされており、数値の乗算だけでなく、文字列の自動転結もサポートしています（Ptyhon）", roman: "you can literally use the star operator which has been overloaded to support not only multiplication with numbers" }, { japanese: "Pythonで浮動小数点数を文字列に変換することができるのです", roman: "i can take in python in this case a float and convert it to a string equivalent" },
+  { japanese: "フォーマット文字列の中にある場合、Pythonはそれを自動的に文字列に変換します", roman: "it is for can also be used to iterate over the individual characters in a string as you might want to do when doing something like" }, { japanese: "線形探索はただの前置詞的なフレーズで、数字の中に - があれば欲しい答えの真偽が得られます（Python）", roman: "linear search is just a prepositional phrase if - in numbers gives you the answer true of false" },
+  { japanese: "前置詞inを使った非常にシンプルな文字列比較で物事を検出することができます（Python）", roman: "i can use very simple string comparisons using the in preposition to detect things" }, { japanese: "顔認識機能をインポートしたようにPythonの音声認識機能をインポートしてみましょう（Python)", roman: "just like i imported facial recognition let me import speech recognition in python" },
+  { japanese: "htmlページには、タグや要素と呼ばれるものと、属性という2つの異なる概念が含まれています", roman: "an html page is going to contain really two different concepts inside of it what we'll call tags or elements and also attributes" }, { japanese: "ｈ1タグは最大の見出しタグです（html）", roman: "h1 tag which is like the biggest heading tag" },
+  { japanese: "コンピュータサイエンスの一般的な用語で数学のxyzのようなプレースホルダーが必要な場合にfoo、bar、bazなどを使います", roman: "foo bar and baz which are sort of generic computer science terms whenever you just need placeholders like　x y and z math" }, { japanese: "順序なしリストというタグがあります。ul（unordered list）は順不同のリストという意味です（html）", roman: "there's the unordered list tag.so ul for unordered list which means it's not numbered" },
+  { japanese: "htmlでは、テーブルの行にtr、その中の列にはtdを使って表形式のデータをレイアウトすることができます", roman: "html gives them the ability to  layout tabular data using tr for table rows and td for the columns they're in" }, { japanese: "ハイパーテキストとは、他の場所にリンクするリンクを持つテキストのことです", roman: "hypertext is context with links that link elsewhere" },
+  { japanese: "text-alignはテキストの位置をそろえるものです（css）", roman: "text-align is going to align text" }, { japanese: "実行時間とは、あるアルゴリズムにどれだけの時間がかかるかということです", roman: "running time refers to how long does an algorithm" },
+  { japanese: "trueとfalseは大文字でなければなりません（Python）", roman: "true and it turns out false now must be capitalized" }, { japanese: "Pythonの辞書はより一般的に、任意のキーと任意の値を格納することができます", roman: "dictionary in python more generally lets you store any keys and any values" },
+  { japanese: "rangeには2つの異なる種類があることです（Ptyhon）", roman: "that range comes in two different flavers" }, { japanese: "キャストとはあるデータ型を別のデータ型に変換することです（Python）", roman: "casting means to convert one date type to another" },
+  { japanese: "ネームスペーシングとは2つの異なるネームスペースに同じ名前の変数や関数を存在させることができるということです（Python）", roman: "namespacing means that you can have two identically named variables of function in two different name spaces" }, { japanese: "Pythonにはcharというデータ型は存在しません", roman: "in python there is no such thing as an individual char" },
+  { japanese: "星型演算子（＊）はオーバーロードされており、数値の乗算だけでなく、文字列の自動転結もサポートしています（Ptyhon）", roman: "you can literally use the star operator which has been overloaded to support not only multiplication with numbers" }, { japanese: "Pythonで浮動小数点数を文字列に変換することができるのです", roman: "i can take in python in this case a float and convert it to a string equivalent" },
+  { japanese: "フォーマット文字列の中にある場合、Pythonはそれを自動的に文字列に変換します", roman: "it is for can also be used to iterate over the individual characters in a string as you might want to do when doing something like" }, { japanese: "線形探索はただの前置詞的なフレーズで、数字の中に - があれば欲しい答えの真偽が得られます（Python）", roman: "linear search is just a prepositional phrase if - in numbers gives you the answer true of false" },
+  { japanese: "前置詞inを使った非常にシンプルな文字列比較で物事を検出することができます（Python）", roman: "i can use very simple string comparisons using the in preposition to detect things" }, { japanese: "htmlページには、タグや要素と呼ばれるものと、属性という2つの異なる概念が含まれています", roman: "an html page is going to contain really two different concepts inside of it what we'll call tags or elements and also attributes" },
+  { japanese: "ｈ1タグは最大の見出しタグです（html）", roman: "h1 tag which is like the biggest heading tag" }, { japanese: "コンピュータサイエンスの一般的な用語で数学のxyzのようなプレースホルダーが必要な場合にfoo、bar、bazなどを使います", roman: "foo bar and baz which are sort of generic computer science terms whenever you just need placeholders like　x y and z math" },
+  { japanese: "順序なしリストというタグがあります。ul（unordered list）は順不同のリストという意味です（html）", roman: "there's the unordered list tag.so ul for unordered list which means it's not numbered" }, { japanese: "htmlでは、テーブルの行にtr、その中の列にはtdを使って表形式のデータをレイアウトすることができます", roman: "html gives them the ability to  layout tabular data using tr for table rows and td for the columns they're in" },
+  { japanese: "ハイパーテキストとは、他の場所にリンクするリンクを持つテキストのことです", roman: "hypertext is context with links that link elsewhere" }, { japanese: "text-alignはテキストの位置をそろえるものです（css）", roman: "text-align is going to align text" },
+  { japanese: "実行時間とは、あるアルゴリズムにどれだけの時間がかかるかということです", roman: "running time refers to how long does an algorithm" }, { japanese: "Pythonにはcharというデータ型は存在しません", roman: "in python there is no such thing as an individual char" }
+  
+];
+
+let currentWord = {};
+let score = 0;
+let mistakeCount = 0;
+let questionLimit = 0;
+let questionsRemaining = 0;
+
+const wordDisplay = document.getElementById("wordDisplay");
+const romanDisplay = document.getElementById("romanDisplay");
+const userInput = document.getElementById("userInput");
+const scoreDisplay = document.getElementById("score");
+const questionCountDisplay = document.getElementById("questionCount");
+const startButton = document.getElementById("startButton");
+const settings = document.getElementById("settings");
+const game = document.getElementById("game");
+const endGame = document.getElementById("endGame");
+const questionSelect = document.getElementById("questionSelect");
+const retryButton = document.getElementById("retryButton");
+const finalScoreDisplay = document.getElementById("finalScore");
+const correctAnswersDisplay = document.getElementById("correctAnswers");
+const totalQuestionsDisplay = document.getElementById("totalQuestions");
+const tweetButton = document.getElementById("tweetButton");
+
+function getRandomWord() {
+  return words[Math.floor(Math.random() * words.length)];
+}
+
+function displayNewWord() {
+  currentWord = getRandomWord();
+  wordDisplay.textContent = currentWord.japanese;
+  romanDisplay.textContent = currentWord.roman;
+  userInput.value = "";
+  mistakeCount = 0;
+}
+
+function updateScore() {
+  scoreDisplay.textContent = "スコア: " + score;
+}
+
+function updateQuestionCount() {
+  questionCountDisplay.textContent = "残りの出題数: " + questionsRemaining;
+}
+
+function startGame() {
+  score = 0;
+  questionsRemaining = questionLimit;
+  settings.classList.add("hidden");
+  endGame.classList.add("hidden");
+  game.classList.remove("hidden");
+  userInput.disabled = false;
+  updateScore();
+  updateQuestionCount();
+  displayNewWord();
+}
+
+userInput.addEventListener("input", () => {
+  const userInputValue = userInput.value;
+  let mistakes = 0;
+
+  for (let i = 0; i < userInputValue.length; i++) {
+    if (userInputValue[i] !== currentWord.roman[i]) {
+      mistakes++;
+    }
+  }
+
+  if (mistakes >= 2) {
+    questionsRemaining--;
+    updateQuestionCount();
+    if (questionsRemaining > 0) {
+      displayNewWord();
+    } else {
+      endGameSequence();
+    }
+  } else if (userInputValue === currentWord.roman) {
+    score++;
+    questionsRemaining--;
+    updateScore();
+    updateQuestionCount();
+    if (questionsRemaining > 0) {
+      displayNewWord();
+    } else {
+      endGameSequence();
+    }
+  }
+});
+
+function endGameSequence() {
+  game.classList.add("hidden");
+  endGame.classList.remove("hidden");
+  correctAnswersDisplay.textContent = score;
+  totalQuestionsDisplay.textContent = questionLimit;
+}
+
+startButton.addEventListener("click", () => {
+  questionLimit = parseInt(questionSelect.value);
+  startGame();
+});
+
+retryButton.addEventListener("click", () => {
+  settings.classList.remove("hidden");
+  endGame.classList.add("hidden");
+});
+
+tweetButton.addEventListener("click", () => {
+  const tweetText = `今回のタイピングスコアは ${score} 点 / ${questionLimit} 問 でした。`;
+  const tweetUrl = `https://x.com/intent/post?text=${encodeURIComponent(tweetText)}`;
+  window.open(tweetUrl, '_blank');
+});
+
+
+  </script>
+
+  <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent){
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: ""
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script>
+
+  <script>
+    const allLines = []
+    const cssElement = document.querySelector("#compiled-css")
+
+    window.addEventListener("message", (message) => {
+        if (message.data.console){
+          let insert = document.querySelector("#insert")
+          allLines.push(message.data.console.payload)
+          insert.innerHTML = allLines.join(";\r")
+
+          let result = eval.call(null, message.data.console.payload)
+          if (result !== undefined){
+            console.log(result)
+          }
+        }
+
+      if (message.data.css){
+        cssElement.textContent = message.data.css.payload
+      }
+
+      if (message.data.html){
+        document.body.innerHTML = message.data.html.payload
+      }
+    })
+  </script>
+</body></html>
